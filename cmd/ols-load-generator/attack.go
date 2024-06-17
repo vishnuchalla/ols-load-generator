@@ -97,10 +97,52 @@ func orchestrateWorkload(ctx context.Context, conf *TestConfig) error {
 	var requests []map[string]interface{}
 	var err error
 
-	requests = attacker.CreateQueryRequests(ctx, conf.HitSize, conf.Host, conf.AuthToken)
+	requests = attacker.CreateReadinessRequests(ctx, conf.HitSize, conf.Host)
+	err = attacker.RunVegeta(ctx, requests, "get_readiness", conf.Rps)
+	if err != nil {
+		return fmt.Errorf("Error while running GET operation on /readiness: %w", err)
+	}
+
+	requests = attacker.CreateLivenessRequests(ctx, conf.HitSize, conf.Host)
+	err = attacker.RunVegeta(ctx, requests, "get_liveness", conf.Rps)
+	if err != nil {
+		return fmt.Errorf("Error while running GET operation on /liveness: %w", err)
+	}
+
+	requests = attacker.CreateAuthorizedRequests(ctx, conf.HitSize, conf.Host, conf.AuthToken)
+	err = attacker.RunVegeta(ctx, requests, "post_authorized", conf.Rps)
+	if err != nil {
+		return fmt.Errorf("Error while running POST operation on /authorized: %w", err)
+	}
+
+	requests = attacker.CreateMetricsRequests(ctx, conf.HitSize, conf.Host, conf.AuthToken)
+	err = attacker.RunVegeta(ctx, requests, "get_metrics", conf.Rps)
+	if err != nil {
+		return fmt.Errorf("Error while running GET operation on /metrics: %w", err)
+	}
+
+	requests = attacker.CreateQueryRequests(ctx, conf.HitSize, conf.Host, conf.AuthToken, false)
 	err = attacker.RunVegeta(ctx, requests, "post_query", conf.Rps)
 	if err != nil {
-		return fmt.Errorf("Error while running POST operation on /query: %w", err)
+		return fmt.Errorf("Error while running POST operation on /v1/query: %w", err)
+	}
+
+	requests = attacker.CreateQueryRequests(ctx, conf.HitSize, conf.Host, conf.AuthToken, true)
+	err = attacker.RunVegeta(ctx, requests, "post_query_with_cache", conf.Rps)
+	if err != nil {
+		return fmt.Errorf("Error while running POST operation on /v1/query with cache: %w", err)
+	}
+
+	requests = attacker.CreateGetFeedbackStatusRequests(ctx, conf.HitSize, conf.Host, conf.AuthToken)
+	err = attacker.RunVegeta(ctx, requests, "get_feedback_status", conf.Rps)
+	if err != nil {
+		return fmt.Errorf("Error while running GET operation on /v1/feedback/status: %w", err)
+	}
+
+	requests = attacker.CreateFeedbackRequests(ctx, conf.HitSize, conf.Host, conf.AuthToken)
+	err = attacker.RunVegeta(ctx, requests, "post_feedback", conf.Rps)
+	if err != nil {
+		return fmt.Errorf("Error while running POST operation on /v1/feedback: %w", err)
 	}
 
 	zlog.Info(ctx).Str("RunID", conf.RunID).Msg("👋 Exiting ols-load-generator")
