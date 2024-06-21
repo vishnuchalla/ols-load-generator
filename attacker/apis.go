@@ -2,12 +2,37 @@ package attacker
 
 import (
 	"context"
+	"embed"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/quay/zlog"
+	"gopkg.in/yaml.v2"
 )
+
+//go:embed assets/*
+var assets embed.FS
+
+// Questions list struct
+type QuestionList struct {
+	Questions []string `yaml:"questions"`
+}
+
+// Feedback struct
+type Feedback struct {
+	ConversationID string `yaml:"conversation_id"`
+	UserFeedback   string `yaml:"user_feedback"`
+	UserQuestion   string `yaml:"user_question"`
+	LLMResponse    string `yaml:"llm_response"`
+}
+
+// Feedbacks list struct
+type FeedbackList struct {
+	Feedbacks []Feedback `yaml:"feedbacks"`
+}
 
 // getRequestCommons returns the common inputs for each and every HTTP request.
 // It returns a url and headers for the specified input.
@@ -26,20 +51,37 @@ func getRequestCommons(ctx context.Context, endpoint, host, token string) (strin
 func CreateQueryRequests(ctx context.Context, hitSize int, host, token string, withCache bool) []map[string]interface{} {
 	url, headers := getRequestCommons(ctx, "/v1/query", host, token)
 	var requests []map[string]interface{}
-	body := map[string]string{
-		"query": "write a deployment yaml for the mongodb image",
+
+	data, err := assets.ReadFile("assets/questions.yaml")
+	if err != nil {
+		fmt.Errorf("error: %v", err)
 	}
+
+	var questionList QuestionList
+	err = yaml.Unmarshal(data, &questionList)
+	if err != nil {
+		fmt.Errorf("error: %v", err)
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(questionList.Questions), func(i, j int) {
+		questionList.Questions[i], questionList.Questions[j] = questionList.Questions[j], questionList.Questions[i]
+	})
+
+	body := make(map[string]string)
 	if withCache {
 		body["conversation_id"] = "00000000-0000-0000-0000-000000000000"
 		zlog.Info(ctx).Int("number of requests", hitSize).Msg("preparing requests for POST operation on /v1/query with cache")
 	} else {
 		zlog.Info(ctx).Int("number of requests", hitSize).Msg("preparing requests for POST operation on /v1/query")
 	}
-	bodyBytes, err := json.Marshal(body)
-	if err != nil {
-		fmt.Errorf("Error marshaling body: %v", err)
-	}
+
 	for idx := 0; idx < hitSize; idx++ {
+		body["query"] = questionList.Questions[idx%len(questionList.Questions)]
+		bodyBytes, err := json.Marshal(body)
+		if err != nil {
+			fmt.Errorf("Error marshaling body: %v", err)
+		}
 		requests = append(requests, map[string]interface{}{
 			"method": http.MethodPost,
 			"url":    url,
@@ -135,18 +177,35 @@ func CreateFeedbackRequests(ctx context.Context, hitSize int, host, token string
 	zlog.Info(ctx).Int("number of requests", hitSize).Msg("preparing requests for POST operation on /v1/feedback")
 	url, headers := getRequestCommons(ctx, "/v1/feedback", host, token)
 	var requests []map[string]interface{}
-	body := map[string]string{
-		"conversation_id": "00000000-0000-0000-0000-000000000000",
-		"user_feedback":   "Great service!",
-		"user_question":   "foo",
-		"llm_response":    "bar",
-	}
-	bodyBytes, err := json.Marshal(body)
+
+	data, err := assets.ReadFile("assets/feedbacks.yaml")
 	if err != nil {
-		fmt.Errorf("Error marshaling body: %v", err)
+		fmt.Errorf("error: %v", err)
 	}
 
+	var feedbackList FeedbackList
+	err = yaml.Unmarshal(data, &feedbackList)
+	if err != nil {
+		fmt.Errorf("error: %v", err)
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(feedbackList.Feedbacks), func(i, j int) {
+		feedbackList.Feedbacks[i], feedbackList.Feedbacks[j] = feedbackList.Feedbacks[j], feedbackList.Feedbacks[i]
+	})
+
 	for idx := 0; idx < hitSize; idx++ {
+		feedback := feedbackList.Feedbacks[idx%len(feedbackList.Feedbacks)]
+		body := map[string]string{
+			"conversation_id": feedback.ConversationID,
+			"user_feedback":   feedback.UserFeedback,
+			"user_question":   feedback.UserQuestion,
+			"llm_response":    feedback.LLMResponse,
+		}
+		bodyBytes, err := json.Marshal(body)
+		if err != nil {
+			fmt.Errorf("Error marshaling body: %v", err)
+		}
 		requests = append(requests, map[string]interface{}{
 			"method": http.MethodPost,
 			"url":    url,
