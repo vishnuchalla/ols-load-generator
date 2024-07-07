@@ -1,0 +1,18 @@
+---
+ # openshift lightspeed aggregate metrics
+
+- query: avg(avg_over_time(irate(container_cpu_usage_seconds_total{name!="", namespace="openshift-lightspeed", container!="POD"}[2m])[{{.elapsed}}:])) by (container)
+  metricName: avg-cpu-lightspeed
+  instant: true
+
+- query: max(max_over_time(irate(container_cpu_usage_seconds_total{name!="", namespace="openshift-lightspeed", container!="POD"}[2m])[{{.elapsed}}:])) by (container)
+  metricName: max-cpu-lightspeed
+  instant: true
+
+- query: avg(avg_over_time(container_memory_rss{name!="", namespace="openshift-lightspeed", container!="POD"}[{{.elapsed}}:])) by (container)
+  metricName: avg-memory-lightspeed
+  instant: true
+
+- query: max(avg_over_time(container_memory_rss{name!="", namespace="openshift-lightspeed", container!="POD"}[{{.elapsed}}:])) by (container)
+  metricName: max-memory-lightspeed
+  instant: true

@@ -14,6 +14,7 @@ RUN microdnf update -y && \
 
 # Copy the binary from the local file system to the image
 COPY ols-load-generator /bin/ols-load-generator
+COPY assets/profiles/ ./assets/
 
 # Set the display name label
 LABEL io.k8s.display-name="ols-load-generator"

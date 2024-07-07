@@ -45,6 +45,8 @@ install:
 
 images:
 	@echo -e "\033[2mBuilding container $(CONTAINER_NAME_ARCH)\033[0m"
+	mkdir -p $(BIN_DIR)/$(ARCH)/assets/profiles
+	cp -r attacker/assets/profiles/ $(BIN_DIR)/$(ARCH)/assets/profiles
 	$(ENGINE) build --arch=$(ARCH) -f Containerfile $(BIN_DIR)/$(ARCH)/ -t $(CONTAINER_NAME_ARCH)
 
 push:

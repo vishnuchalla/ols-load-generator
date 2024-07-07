@@ -53,6 +53,7 @@ func main() {
 		Before:               setLogLevel,
 		Commands: []*cli.Command{
 			AttackCmd,
+			IndexCmd,
 		},
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
