@@ -31,8 +31,8 @@ oc create secret generic kubeconfig-secret --from-file=kubeconfig=<YOUR-KUBECONF
 * `OLS_TEST_HOST` - String indicating OLS endpoint to perform load testing.
 * `OLS_TEST_UUID`(Optional) - String specifying an unique ID. Will be helpful while comparing two runs or while looking at a specific run results.
 * `OLS_TEST_AUTH_TOKEN` - OLS auth token string.
-* `OLS_TEST_HIT_SIZE` - Indicates the total amount of requests to be sent as a part of the load testing.
-* `OLS_TEST_RPS` - Requests per second to be sent to the OLS endpoint in parallel.
+* `OLS_TEST_DURATION` - Load testing duration on each API endpoint.
+* `OLS_TEST_WORKERS` - Amount of parallel workers to trigger load on OLS. This will basically help us send requests in parallel.
 * `OLS_TEST_METRIC_STEP` - Step size for the cluster prometheus metrics to be captured.
 * `OLS_TEST_PROFILES` - List of metric profiles that contain queries to be executed on prometheus.
 * `OLS_TEST_ES_HOST`(Optional) - Elastic search host url. If not specified metrics will be indexed locally.
@@ -81,8 +81,8 @@ OPTIONS:
    --host value        --host localhost:6060 (default: "http://localhost:6060") [$OLS_TEST_HOST]
    --authtoken value   --authtoken authtoken [$OLS_TEST_AUTH_TOKEN]
    --uuid value        --uuid f519d9b2-aa62-44ab-9ce8-4156b712f6d2 (default: "08fd0205-d2d8-4954-b83e-86226dd4e2ac") [$OLS_TEST_UUID]
-   --hitsize value     --hitsize 100 (default: 25) [$OLS_TEST_HIT_SIZE]
-   --rps value         --rps 50 (default: 10) [$OLS_TEST_RPS]
+   --duration value    --duration 1m (default: 1m0s) [$OLS_TEST_DURATION]
+   --workers value     --workers 10 (default: 10) [$OLS_TEST_WORKERS]
    --eshost value      --eshost eshosturl [$OLS_TEST_ES_HOST]
    --esindex value     --esindex esindex [$OLS_TEST_ES_INDEX]
    --metricstep value  --metricstep 30 (default: 30) [$OLS_TEST_METRIC_STEP]
@@ -92,7 +92,7 @@ OPTIONS:
 #### Example Usage
 ```
 export KUBECONFIG=<your-kubeconfig-path>
-ols-load-generator attack --host https://127.0.0.1:9001 --uuid random-uuid --authtoken 'auth-token' --hitsize 5 --rps 1
+ols-load-generator attack --host https://127.0.0.1:9001 --uuid random-uuid --authtoken 'auth-token' --duration 1m --workers 10
 ```
 ### index sub-command
 Subcommand to scrape and index cluster prometheus metrics within a given time range. 
