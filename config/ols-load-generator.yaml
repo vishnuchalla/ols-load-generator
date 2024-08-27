@@ -44,10 +44,10 @@ spec:
             value: <ols-test-uuid>
           - name: OLS_TEST_AUTH_TOKEN
             value: <ols-auth-token>
-          - name: OLS_TEST_HIT_SIZE
-            value: <hit-size>
-          - name: OLS_TEST_RPS
-            value: <requests-per-second>
+          - name: OLS_TEST_DURATION
+            value: <your-test-duration>
+          - name: OLS_TEST_WORKERS
+            value: <parallel-test-workers>
           - name: OLS_TEST_METRIC_STEP
             value: <your-step-size>
           - name: OLS_TEST_PROFILES

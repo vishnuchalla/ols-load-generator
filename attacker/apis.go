@@ -48,8 +48,9 @@ func getRequestCommons(ctx context.Context, endpoint, host, token string) (strin
 }
 
 // CreateQueryRequests returns the list of requests to perform POST operation on query endpoint.
-func CreateQueryRequests(ctx context.Context, hitSize int, host, token string, withCache bool) []map[string]interface{} {
+func CreateQueryRequests(ctx context.Context, duration time.Duration, workers int, host, token string, withCache bool) []map[string]interface{} {
 	url, headers := getRequestCommons(ctx, "/v1/query", host, token)
+	hitSize := int(duration.Seconds()) * workers
 	var requests []map[string]interface{}
 
 	data, err := assets.ReadFile("assets/questions.yaml")
@@ -71,9 +72,9 @@ func CreateQueryRequests(ctx context.Context, hitSize int, host, token string, w
 	body := make(map[string]string)
 	if withCache {
 		body["conversation_id"] = "00000000-0000-0000-0000-000000000000"
-		zlog.Info(ctx).Int("number of requests", hitSize).Msg("preparing requests for POST operation on /v1/query with cache")
+		zlog.Info(ctx).Str("duration", duration.String()).Msg("preparing requests for POST operation on /v1/query with cache for")
 	} else {
-		zlog.Info(ctx).Int("number of requests", hitSize).Msg("preparing requests for POST operation on /v1/query")
+		zlog.Info(ctx).Str("duration", duration.String()).Msg("preparing requests for POST operation on /v1/query for")
 	}
 
 	for idx := 0; idx < hitSize; idx++ {
@@ -93,9 +94,10 @@ func CreateQueryRequests(ctx context.Context, hitSize int, host, token string, w
 }
 
 // CreateReadinessRequests returns the list of requests to perform GET operation on readiness endpoint.
-func CreateReadinessRequests(ctx context.Context, hitSize int, host string) []map[string]interface{} {
-	zlog.Info(ctx).Int("number of requests", hitSize).Msg("preparing requests for GET operation on /readiness")
+func CreateReadinessRequests(ctx context.Context, duration time.Duration, workers int, host string) []map[string]interface{} {
 	url, headers := getRequestCommons(ctx, "/readiness", host, "")
+	hitSize := int(duration.Seconds()) * workers
+	zlog.Info(ctx).Str("duration", duration.String()).Msg("preparing requests for GET operation on /readiness for")
 	var requests []map[string]interface{}
 
 	for idx := 0; idx < hitSize; idx++ {
@@ -109,9 +111,10 @@ func CreateReadinessRequests(ctx context.Context, hitSize int, host string) []ma
 }
 
 // CreateLivenessRequests returns the list of requests to perform GET operation on liveness endpoint.
-func CreateLivenessRequests(ctx context.Context, hitSize int, host string) []map[string]interface{} {
-	zlog.Info(ctx).Int("number of requests", hitSize).Msg("preparing requests for GET operation on /liveness")
+func CreateLivenessRequests(ctx context.Context, duration time.Duration, workers int, host string) []map[string]interface{} {
 	url, headers := getRequestCommons(ctx, "/liveness", host, "")
+	hitSize := int(duration.Seconds()) * workers
+	zlog.Info(ctx).Str("duration", duration.String()).Msg("preparing requests for GET operation on /liveness for")
 	var requests []map[string]interface{}
 
 	for idx := 0; idx < hitSize; idx++ {
@@ -125,9 +128,10 @@ func CreateLivenessRequests(ctx context.Context, hitSize int, host string) []map
 }
 
 // CreateMetricsRequests returns the list of requests to perform GET operation on metrics endpoint.
-func CreateMetricsRequests(ctx context.Context, hitSize int, host, token string) []map[string]interface{} {
-	zlog.Info(ctx).Int("number of requests", hitSize).Msg("preparing requests for GET operation on /metrics")
+func CreateMetricsRequests(ctx context.Context, duration time.Duration, workers int, host, token string) []map[string]interface{} {
 	url, headers := getRequestCommons(ctx, "/metrics", host, token)
+	hitSize := int(duration.Seconds()) * workers
+	zlog.Info(ctx).Str("duration", duration.String()).Msg("preparing requests for GET operation on /metrics for")
 	var requests []map[string]interface{}
 
 	for idx := 0; idx < hitSize; idx++ {
@@ -141,9 +145,10 @@ func CreateMetricsRequests(ctx context.Context, hitSize int, host, token string)
 }
 
 // CreateAuthorizedRequests returns the list of requests to perform POST operation on authorized endpoint.
-func CreateAuthorizedRequests(ctx context.Context, hitSize int, host, token string) []map[string]interface{} {
-	zlog.Info(ctx).Int("number of requests", hitSize).Msg("preparing requests for POST operation on /authorized")
+func CreateAuthorizedRequests(ctx context.Context, duration time.Duration, workers int, host, token string) []map[string]interface{} {
 	url, headers := getRequestCommons(ctx, "/authorized", host, token)
+	hitSize := int(duration.Seconds()) * workers
+	zlog.Info(ctx).Str("duration", duration.String()).Msg("preparing requests for POST operation on /authorized for")
 	var requests []map[string]interface{}
 
 	for idx := 0; idx < hitSize; idx++ {
@@ -157,9 +162,10 @@ func CreateAuthorizedRequests(ctx context.Context, hitSize int, host, token stri
 }
 
 // CreateGetFeedbackStatusRequests returns the list of requests to perform GET operation on feedback status endpoint.
-func CreateGetFeedbackStatusRequests(ctx context.Context, hitSize int, host, token string) []map[string]interface{} {
-	zlog.Info(ctx).Int("number of requests", hitSize).Msg("preparing requests for GET operation on /v1/feedback/status")
+func CreateGetFeedbackStatusRequests(ctx context.Context, duration time.Duration, workers int, host, token string) []map[string]interface{} {
 	url, headers := getRequestCommons(ctx, "/v1/feedback/status", host, token)
+	hitSize := int(duration.Seconds()) * workers
+	zlog.Info(ctx).Str("duration", duration.String()).Msg("preparing requests for GET operation on /v1/feedback/status for")
 	var requests []map[string]interface{}
 
 	for idx := 0; idx < hitSize; idx++ {
@@ -173,9 +179,10 @@ func CreateGetFeedbackStatusRequests(ctx context.Context, hitSize int, host, tok
 }
 
 // CreateFeedbackRequests returns the list of requests to perform POST operation on feedback endpoint.
-func CreateFeedbackRequests(ctx context.Context, hitSize int, host, token string) []map[string]interface{} {
-	zlog.Info(ctx).Int("number of requests", hitSize).Msg("preparing requests for POST operation on /v1/feedback")
+func CreateFeedbackRequests(ctx context.Context, duration time.Duration, workers int, host, token string) []map[string]interface{} {
 	url, headers := getRequestCommons(ctx, "/v1/feedback", host, token)
+	hitSize := int(duration.Seconds()) * workers
+	zlog.Info(ctx).Str("duration", duration.String()).Msg("preparing requests for POST operation on /v1/feedback for")
 	var requests []map[string]interface{}
 
 	data, err := assets.ReadFile("assets/feedbacks.yaml")

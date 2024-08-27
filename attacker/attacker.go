@@ -120,16 +120,25 @@ func indexVegetaResults(ctx context.Context, metrics vegeta.Metrics, testName st
 func RunVegeta(ctx context.Context, requestDicts []map[string]interface{}, testName string, attackMap map[string]string) error {
 	startTime := time.Now()
 	requests := generateVegetaRequests(requestDicts)
-	rps, _ := strconv.Atoi(attackMap["Rps"])
-	rate := vegeta.Rate{Freq: rps, Per: time.Second}
-	duration := time.Second * time.Duration(len(requests)/rps)
+	workers, _ := strconv.Atoi(attackMap["Workers"])
+	duration, err := time.ParseDuration(attackMap["Duration"])
+	if err != nil {
+		return fmt.Errorf("Failed to parse duration: %v", err)
+	}
+	rate := vegeta.Rate{Freq: 0, Per: time.Second}
 	targeter := vegeta.NewStaticTargeter(requests...)
 	// Custom HTTP client with InsecureSkipVerify set to true
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	client := &http.Client{Transport: tr}
-	attacker := vegeta.NewAttacker(vegeta.Client(client), vegeta.Timeout(requestTimeout*time.Second))
+	attacker := vegeta.NewAttacker(vegeta.Client(client),
+		vegeta.Workers(uint64(workers)),
+		vegeta.MaxWorkers(uint64(workers)),
+		vegeta.Connections(workers),
+		vegeta.MaxConnections(workers),
+		vegeta.KeepAlive(true),
+		vegeta.Timeout(requestTimeout*time.Second))
 
 	// Initiate vegeta attack and stop immediately after completion
 	var metrics vegeta.Metrics
@@ -141,7 +150,7 @@ func RunVegeta(ctx context.Context, requestDicts []map[string]interface{}, testN
 
 	// Generate Vegeta text report
 	report := vegeta.NewTextReporter(&metrics)
-	err := report.Report(os.Stdout)
+	err = report.Report(os.Stdout)
 	if err != nil {
 		return fmt.Errorf("vegeta report command failure: %w", err)
 	}
