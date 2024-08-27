@@ -11,7 +11,8 @@ type Document struct {
 	RequestTimeout int            `json:"requestTimeout"`
 	MetricName     string         `json:"metricName"`
 	Hostname       string         `json:"hostname"`
-	Rps            int            `json:"rps"`
+	Duration       string         `json:"duration"`
+	Workers        int            `json:"workers"`
 	AttackTime     time.Duration  `json:"attackTime"`
 	WaitTime       time.Duration  `json:"waitTime"`
 	Throughput     float64        `json:"throughput"`

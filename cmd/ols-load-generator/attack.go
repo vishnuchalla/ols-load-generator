@@ -38,17 +38,17 @@ var AttackCmd = &cli.Command{
 			Value:   uuid.New().String(),
 			EnvVars: []string{"OLS_TEST_UUID"},
 		},
-		&cli.IntFlag{
-			Name:    "hitsize",
-			Usage:   "--hitsize 100",
-			Value:   25,
-			EnvVars: []string{"OLS_TEST_HIT_SIZE"},
+		&cli.DurationFlag{
+			Name:    "duration",
+			Usage:   "--duration 1m",
+			Value:   1 * time.Minute,
+			EnvVars: []string{"OLS_TEST_DURATION"},
 		},
 		&cli.IntFlag{
-			Name:    "rps",
-			Usage:   "--rps 50",
+			Name:    "workers",
+			Usage:   "--workers 10",
 			Value:   10,
-			EnvVars: []string{"OLS_TEST_RPS"},
+			EnvVars: []string{"OLS_TEST_WORKERS"},
 		},
 		&cli.StringFlag{
 			Name:    "eshost",
@@ -84,8 +84,8 @@ func attackConfig(c *cli.Context) *TestConfig {
 		AuthToken:  c.String("authtoken"),
 		Uuid:       c.String("uuid"),
 		Host:       c.String("host"),
-		HitSize:    c.Int("hitsize"),
-		Rps:        c.Int("rps"),
+		Duration:   c.Duration("duration"),
+		Workers:    c.Int("workers"),
 		ESHost:     c.String("eshost"),
 		ESIndex:    c.String("esindex"),
 		MetricStep: c.Int("metricstep"),
@@ -123,56 +123,57 @@ func orchestrateWorkload(ctx context.Context, conf *TestConfig) error {
 	var requests []map[string]interface{}
 	var err error
 	attackMap := map[string]string{
-		"Uuid":    conf.Uuid,
-		"Rps":     strconv.Itoa(conf.Rps),
-		"ESHost":  conf.ESHost,
-		"ESIndex": conf.ESIndex,
-		"Host":    conf.Host,
+		"Uuid":     conf.Uuid,
+		"Workers":  strconv.Itoa(conf.Workers),
+		"Duration": conf.Duration.String(),
+		"ESHost":   conf.ESHost,
+		"ESIndex":  conf.ESIndex,
+		"Host":     conf.Host,
 	}
 
-	requests = attacker.CreateReadinessRequests(ctx, conf.HitSize, conf.Host)
+	requests = attacker.CreateReadinessRequests(ctx, conf.Duration, conf.Workers, conf.Host)
 	err = attacker.RunVegeta(ctx, requests, "get_readiness", attackMap)
 	if err != nil {
 		return fmt.Errorf("Error while running GET operation on /readiness: %w", err)
 	}
 
-	requests = attacker.CreateLivenessRequests(ctx, conf.HitSize, conf.Host)
+	requests = attacker.CreateLivenessRequests(ctx, conf.Duration, conf.Workers, conf.Host)
 	err = attacker.RunVegeta(ctx, requests, "get_liveness", attackMap)
 	if err != nil {
 		return fmt.Errorf("Error while running GET operation on /liveness: %w", err)
 	}
 
-	requests = attacker.CreateAuthorizedRequests(ctx, conf.HitSize, conf.Host, conf.AuthToken)
+	requests = attacker.CreateAuthorizedRequests(ctx, conf.Duration, conf.Workers, conf.Host, conf.AuthToken)
 	err = attacker.RunVegeta(ctx, requests, "post_authorized", attackMap)
 	if err != nil {
 		return fmt.Errorf("Error while running POST operation on /authorized: %w", err)
 	}
 
-	requests = attacker.CreateMetricsRequests(ctx, conf.HitSize, conf.Host, conf.AuthToken)
+	requests = attacker.CreateMetricsRequests(ctx, conf.Duration, conf.Workers, conf.Host, conf.AuthToken)
 	err = attacker.RunVegeta(ctx, requests, "get_metrics", attackMap)
 	if err != nil {
 		return fmt.Errorf("Error while running GET operation on /metrics: %w", err)
 	}
 
-	requests = attacker.CreateGetFeedbackStatusRequests(ctx, conf.HitSize, conf.Host, conf.AuthToken)
+	requests = attacker.CreateGetFeedbackStatusRequests(ctx, conf.Duration, conf.Workers, conf.Host, conf.AuthToken)
 	err = attacker.RunVegeta(ctx, requests, "get_feedback_status", attackMap)
 	if err != nil {
 		return fmt.Errorf("Error while running GET operation on /v1/feedback/status: %w", err)
 	}
 
-	requests = attacker.CreateFeedbackRequests(ctx, conf.HitSize, conf.Host, conf.AuthToken)
+	requests = attacker.CreateFeedbackRequests(ctx, conf.Duration, conf.Workers, conf.Host, conf.AuthToken)
 	err = attacker.RunVegeta(ctx, requests, "post_feedback", attackMap)
 	if err != nil {
 		return fmt.Errorf("Error while running POST operation on /v1/feedback: %w", err)
 	}
 
-	requests = attacker.CreateQueryRequests(ctx, conf.HitSize, conf.Host, conf.AuthToken, false)
+	requests = attacker.CreateQueryRequests(ctx, conf.Duration, conf.Workers, conf.Host, conf.AuthToken, false)
 	err = attacker.RunVegeta(ctx, requests, "post_query", attackMap)
 	if err != nil {
 		return fmt.Errorf("Error while running POST operation on /v1/query: %w", err)
 	}
 
-	requests = attacker.CreateQueryRequests(ctx, conf.HitSize, conf.Host, conf.AuthToken, true)
+	requests = attacker.CreateQueryRequests(ctx, conf.Duration, conf.Workers, conf.Host, conf.AuthToken, true)
 	err = attacker.RunVegeta(ctx, requests, "post_query_with_cache", attackMap)
 	if err != nil {
 		return fmt.Errorf("Error while running POST operation on /v1/query with cache: %w", err)
