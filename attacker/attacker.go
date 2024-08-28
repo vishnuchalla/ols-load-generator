@@ -80,7 +80,7 @@ func indexVegetaResults(ctx context.Context, metrics vegeta.Metrics, testName st
 	if err != nil {
 		return fmt.Errorf("Failure while creating an indexer: %w", err)
 	}
-	rps, _ := strconv.Atoi(attackMap["Rps"])
+	workers, _ := strconv.Atoi(attackMap["Workers"])
 	hostname, _ := os.Hostname()
 	resp, err := (*indexer).Index([]interface{}{Document{
 		Workload:       "ols-load-generator",
@@ -88,7 +88,8 @@ func indexVegetaResults(ctx context.Context, metrics vegeta.Metrics, testName st
 		RequestTimeout: requestTimeout,
 		MetricName:     testName,
 		Hostname:       hostname,
-		Rps:            rps,
+		Duration:       attackMap["Duration"],
+		Workers:        workers,
 		AttackTime:     metrics.Duration,
 		WaitTime:       metrics.Wait,
 		Throughput:     metrics.Throughput,
