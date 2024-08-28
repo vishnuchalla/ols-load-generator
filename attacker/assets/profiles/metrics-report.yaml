@@ -9,6 +9,46 @@
   metricName: max-cpu-lightspeed
   instant: true
 
+- query: max(max_over_time(rate(ols_llm_validation_errors_total[2m])[{{.elapsed}}:])) by (pod, container, namespace)
+  metricName: max-llm-validation-errors
+  instant: true
+
+- query: avg(avg_over_time(rate(ols_llm_validation_errors_total[2m])[{{.elapsed}}:])) by (pod, container, namespace)
+  metricName: avg-llm-validation-errors
+  instant: true
+
+- query: max(max_over_time(rate(ols_llm_token_sent_total[2m])[{{.elapsed}}:])) by (pod, container, namespace, provider, model)
+  metricName: max-llm-token-sent
+  instant: true
+
+- query: avg(avg_over_time(rate(ols_llm_token_sent_total[2m])[{{.elapsed}}:])) by (pod, container, namespace, provider, model)
+  metricName: avg-llm-token-sent
+  instant: true
+
+- query: max(max_over_time(rate(ols_llm_token_received_total[2m])[{{.elapsed}}:])) by (pod, container, namespace, provider, model)
+  metricName: max-llm-token-received
+  instant: true
+
+- query: avg(avg_over_time(rate(ols_llm_token_received_total[2m])[{{.elapsed}}:])) by (pod, container, namespace, provider, model)
+  metricName: avg-llm-token-received
+  instant: true
+
+- query: max(max_over_time(rate(ols_llm_calls_total[2m])[{{.elapsed}}:])) by (pod, container, namespace, provider, model)
+  metricName: max-llm-calls-total
+  instant: true
+
+- query: avg(avg_over_time(rate(ols_llm_calls_total[2m])[{{.elapsed}}:])) by (pod, container, namespace, provider, model)
+  metricName: avg-llm-calls-total
+  instant: true
+
+- query: max(max_over_time(rate(ols_llm_calls_failures_total[2m])[{{.elapsed}}:])) by (pod, container, namespace)
+  metricName: max-llm-call-failures
+  instant: true
+
+- query: avg(avg_over_time(rate(ols_llm_calls_failures_total[2m])[{{.elapsed}}:])) by (pod, container, namespace)
+  metricName: avg-llm-call-failures
+  instant: true
+
 - query: avg(avg_over_time(container_memory_rss{name!="", namespace="openshift-lightspeed", container!="POD"}[{{.elapsed}}:])) by (container)
   metricName: avg-memory-lightspeed
   instant: true
