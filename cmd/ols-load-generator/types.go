@@ -6,7 +6,6 @@ import (
 
 // Type to store the test config.
 type TestConfig struct {
-	Rps        int           `json:"rps"`
 	Host       string        `json:"host"`
 	Duration   time.Duration `json:"duration"`
 	Workers    int           `json:"workers"`
