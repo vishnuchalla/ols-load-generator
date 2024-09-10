@@ -32,6 +32,37 @@ metadata:
 spec:
   template:
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/worker
+                operator: In
+                values:
+                - ""
+        podAffinity: {}
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app.kubernetes.io/component
+                    operator: In
+                    values:
+                      - application-server
+                  - key: app.kubernetes.io/name
+                    operator: In
+                    values:
+                      - lightspeed-service-api
+                  - key: app.kubernetes.io/part-of
+                    operator: In
+                    values:
+                      - openshift-lightspeed
+                  - key: app.kubernetes.io/managed-by
+                    operator: In
+                    values:
+                      - lightspeed-operator
+              topologyKey: "kubernetes.io/hostname"
       containers:
       - name: ols-load-generatoring
         image: quay.io/vchalla/ols-load-generator:amd64
