@@ -64,7 +64,7 @@ spec:
                       - lightspeed-operator
               topologyKey: "kubernetes.io/hostname"
       containers:
-      - name: ols-load-generatoring
+      - name: ols-load-generator
         image: quay.io/vchalla/ols-load-generator:amd64
         securityContext:
           privileged: true
